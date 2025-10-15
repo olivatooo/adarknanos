@@ -13,22 +13,22 @@ Dimension.AllDimensions = {}
 -- @param cleanup_function function - Optional function to clean up dimension content
 function Dimension.new(id, name, spawn_function, objective_function, cleanup_function)
     local self = setmetatable({}, Dimension)
-    
+
     -- Store parameters
     self.id = id
     self.name = name
     self.spawn_function = spawn_function
     self.objective_function = objective_function
     self.cleanup_function = cleanup_function
-    self.doors = {}  -- List of all doors leading to this dimension
-    self.spawned_entities = {}  -- Track spawned entities for cleanup
+    self.doors = {}            -- List of all doors leading to this dimension
+    self.spawned_entities = {} -- Track spawned entities for cleanup
     self.is_spawned = false
     self.is_completed = false
     self.objective_check_timer = nil
-    
+
     -- Register this dimension
     Dimension.AllDimensions[id] = self
-    
+
     return self
 end
 
@@ -38,12 +38,12 @@ function Dimension:Spawn()
         Console.Warn("Dimension " .. self.name .. " is already spawned!")
         return
     end
-    
+
     if self.spawn_function then
         Console.Log("Spawning dimension: " .. self.name)
         self.spawn_function(self)
         self.is_spawned = true
-        
+
         -- Start checking objective if one exists
         if self.objective_function then
             self:StartObjectiveCheck()
@@ -64,14 +64,14 @@ end
 --- Starts periodic objective checking
 function Dimension:StartObjectiveCheck()
     if self.objective_check_timer then
-        return  -- Already checking
+        return -- Already checking
     end
-    
+
     self.objective_check_timer = Timer.SetInterval(function()
         if self.objective_function and self.objective_function(self) then
             self:CompleteObjective()
         end
-    end, 1000)  -- Check every second
+    end, 1000) -- Check every second
 end
 
 --- Stops objective checking
@@ -87,20 +87,19 @@ function Dimension:CompleteObjective()
     if self.is_completed then
         return
     end
-    
-    Console.Log("Dimension objective completed: " .. self.name)
+
     self.is_completed = true
     self:StopObjectiveCheck()
-    
+
     -- Broadcast completion message
-    Chat.BroadcastMessage("Dimension '" .. self.name .. "' objective completed! Everyone is returning to the Nexus.")
-    
+    Chat.BroadcastMessage("Dream '" .. self.name .. "' is over...")
+
     -- Send all players back to dimension 1 (Nexus)
     self:ReturnAllPlayers()
-    
+
     -- Destroy all doors leading to this dimension
     self:DestroyAllDoors()
-    
+
     -- Cleanup dimension content
     self:Cleanup()
 end
@@ -110,14 +109,15 @@ function Dimension:ReturnAllPlayers()
     local players = Player.GetAll()
     for _, player in pairs(players) do
         if player:GetDimension() == self.id then
-            player:SetDimension(1)  -- Return to Nexus
-            
+            player:SetDimension(1) -- Return to Nexus
+            Events.CallRemote("PlayOST", player, "1.ogg")
+
             -- Also move their character if they have one
             local character = player:GetControlledCharacter()
             if character then
                 character:SetDimension(1)
                 -- Optionally teleport them to a spawn point
-                character:SetLocation(Vector(0, 0, 200))  -- Adjust as needed
+                character:SetLocation(Vector(0, 0, 200)) -- Adjust as needed
             end
         end
     end
@@ -137,12 +137,12 @@ end
 --- Cleans up all entities spawned in this dimension
 function Dimension:Cleanup()
     Console.Log("Cleaning up dimension: " .. self.name)
-    
+
     -- Call custom cleanup function if provided
     if self.cleanup_function then
         self.cleanup_function(self)
     end
-    
+
     -- Destroy tracked entities
     for _, entity in ipairs(self.spawned_entities) do
         if entity and entity.IsValid and entity:IsValid() then
@@ -150,7 +150,7 @@ function Dimension:Cleanup()
         end
     end
     self.spawned_entities = {}
-    
+
     self.is_spawned = false
 end
 
@@ -171,13 +171,13 @@ end
 function Dimension:GetPlayers()
     local players_in_dimension = {}
     local all_players = Player.GetAll()
-    
+
     for _, player in pairs(all_players) do
         if player:GetDimension() == self.id then
             table.insert(players_in_dimension, player)
         end
     end
-    
+
     return players_in_dimension
 end
 
@@ -224,11 +224,11 @@ local items_collected = 0
 local function SpawnCollectionDimension(dimension)
     -- Spawn collectible items
     for i = 1, 5 do
-        local item = Prop(Vector(math.random(-1000, 1000), math.random(-1000, 1000), 50), 
+        local item = Prop(Vector(math.random(-1000, 1000), math.random(-1000, 1000), 50),
                          Rotator(), "nanos-world::SM_WoodenCrate_02")
         item:SetDimension(dimension.id)
         dimension:TrackEntity(item)
-        
+
         -- Add collection logic
         item:Subscribe("Interact", function(self, character)
             items_collected = items_collected + 1
@@ -263,12 +263,12 @@ local dimension_start_time = 0
 
 local function SpawnBossDimension(dimension)
     dimension_start_time = os.time()
-    
+
     -- Spawn a boss NPC
     local boss = Character(Vector(0, 0, 100), Rotator(), "nanos-world::SK_Male")
     boss:SetDimension(dimension.id)
     dimension:TrackEntity(boss)
-    
+
     boss:Subscribe("Death", function()
         boss_defeated = true
     end)
@@ -279,13 +279,13 @@ local function CheckBossObjective(dimension)
     if boss_defeated then
         return true
     end
-    
+
     -- Lose condition: time limit exceeded (5 minutes)
     if os.time() - dimension_start_time > 300 then
         Chat.BroadcastMessage("Time's up! Boss dimension failed!")
         return true
     end
-    
+
     return false
 end
 
@@ -308,7 +308,7 @@ BossDimension:Spawn()
 local ManualDimension = Dimension.new(
     103,
     "Manual Dimension",
-    function(dim) 
+    function(dim)
         Console.Log("Manual dimension spawned!")
     end,
     nil,  -- No objective, manual completion only
@@ -336,4 +336,3 @@ Console.Log("Players in " .. MyDimension.name .. ": " .. player_count)
 -- Dimension.CompleteAll()
 
 --]]
-

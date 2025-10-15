@@ -1,4 +1,6 @@
 Package.Require("Debug.lua")
+Server.LoadPackage("default-vehicles")
+Server.LoadPackage("default-weapons")
 
 function SpawnCharacter(pos, player)
   local character = Character(pos, Rotator(), "nanos-world::SK_Mannequin")
@@ -7,7 +9,9 @@ function SpawnCharacter(pos, player)
   character:SetHealth(100000000)
   character:SetSpeedMultiplier(10)
   Character.Subscribe("Interact", function(self, prop)
-    return false
+    if prop:IsA(Prop) then
+      return false
+    end
   end)
   player:Possess(character)
 end
@@ -30,3 +34,8 @@ Package.Subscribe("Load", function()
 end)
 
 Package.Require("Maps/Nexus.lua")
+
+Player.Subscribe("DimensionChange", function(self, old_dimension, new_dimension)
+  Console.Log("Dimension changed from " .. old_dimension .. " to " .. new_dimension)
+  Events.CallRemote("DimensionChange", self, old_dimension, new_dimension)
+end)

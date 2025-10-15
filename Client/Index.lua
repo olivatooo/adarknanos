@@ -38,7 +38,7 @@ function SpawnSky(lock_timer)
 end
 
 function SetSky(hour, moon_angle, fog, moon_glow_intensity, moon_light_intensity, moon_phase, moon_scale,
-                night_brightness, overall_intensity)
+                night_brightness, overall_intensity, moon_texture)
   Sky.SetTimeOfDay(hour, 0)
   Sky.SetMoonAngle(moon_angle, 0)
   Sky.SetFog(fog)
@@ -48,6 +48,14 @@ function SetSky(hour, moon_angle, fog, moon_glow_intensity, moon_light_intensity
   Sky.SetMoonScale(moon_scale)
   Sky.SetNightBrightness(night_brightness)
   Sky.SetOverallIntensity(overall_intensity)
+  -- Sky.SetMoonTexture(moon_texture)
+  Sky.Reconstruct()
+end
+
+function SetSkyConfig(sky_config)
+  SetSky(sky_config.Hour, sky_config.MoonAngle, sky_config.Fog, sky_config.MoonGlowIntensity,
+    sky_config.MoonLightIntensity, sky_config.MoonPhase, sky_config.MoonScale, sky_config.NightBrightness,
+    sky_config.OverallIntensity, sky_config.MoonTexture)
 end
 
 Events.SubscribeRemote("SetSky", SetSky)
@@ -57,7 +65,9 @@ SpawnSky(true)
 
 -- Loading a local file
 local my_ui = WebUI(
-    "Awesome UI",            -- Name
-    "file://UI/index.html",  -- Path relative to this package (Client/)
-    WidgetVisibility.Visible  -- Is Visible on Screen
+  "Awesome UI",            -- Name
+  "file://UI/index.html",  -- Path relative to this package (Client/)
+  WidgetVisibility.Visible -- Is Visible on Screen
 )
+
+Package.Require("Dimensions.lua")

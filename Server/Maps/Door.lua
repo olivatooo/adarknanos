@@ -12,7 +12,7 @@ DimensionDoor.__index = DimensionDoor
 -- @param on_interact function - Optional custom interaction callback
 function DimensionDoor.new(location, rotation, dimension, name, color, mesh_asset, on_interact, from_dimension)
     local self = setmetatable({}, DimensionDoor)
-    
+
     -- Store parameters
     self.location = location
     self.rotation = rotation
@@ -21,17 +21,47 @@ function DimensionDoor.new(location, rotation, dimension, name, color, mesh_asse
     self.color = color or Color(1, 1, 1)
     self.mesh_asset = mesh_asset or "nanos-world::SM_Portapotty_Door"
     self.custom_interact = on_interact
-    
+
+
+    local clean = Trigger(location, rotation, Vector(500), TriggerType.Sphere, true)
+
+    clean:Subscribe("BeginOverlap", function(self, entity)
+        if entity:IsA(StaticMesh) then
+            Console.Log("Destroying " .. entity:GetMesh())
+            if entity:GetMesh() ~= "nanos-world::SM_Plane" then
+                entity:Destroy()
+            end
+        end
+    end)
+    clean:SetDimension(dimension or 1)
+
+    local clean2 = Trigger(location, rotation, Vector(500), TriggerType.Sphere, true)
+
+    clean2:Subscribe("BeginOverlap", function(self, entity)
+        if entity:IsA(StaticMesh) then
+            if entity:GetMesh() ~= "nanos-world::SM_Plane" then
+                Console.Log("Destroying " .. entity:GetMesh())
+                entity:Destroy()
+            end
+        end
+    end)
+    clean2:SetDimension(from_dimension or 1)
+
+    Timer.SetTimeout(function()
+        clean:Destroy()
+        clean2:Destroy()
+    end, 5000)
+
     -- Create the physical door
     self.prop = Prop(location, rotation, self.mesh_asset, CollisionType.NoCollision, false, GrabMode.Enabled)
     self.prop:SetDimension(from_dimension or 1)
     self.prop:SetMaterialColorParameter("Tint", self.color)
-    
+
     -- Setup interaction
     self.prop:Subscribe("Interact", function(prop, character)
         return self:OnInteract(character)
     end)
-    
+
     return self
 end
 
@@ -40,12 +70,13 @@ function DimensionDoor:OnInteract(character)
     if self.custom_interact then
         return self.custom_interact(self, character)
     end
-    
+
     local player = character:GetPlayer()
     if player then
         Chat.BroadcastMessage(player:GetName() .. " dreamed about " .. self.name)
         player:SetDimension(self.dimension)
         character:SetDimension(self.dimension)
+        Events.CallRemote("DimensionDoorInteracted", player, self.dimension)
     end
     return false
 end
@@ -69,3 +100,4 @@ end
 function DimensionDoor:GetProp()
     return self.prop
 end
+
