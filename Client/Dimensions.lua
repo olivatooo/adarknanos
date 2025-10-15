@@ -43,6 +43,12 @@ function OnDimensionChanged(old_dimension, new_dimension)
       local sky_config = v.SkyConfig
       if sky_config then
         SetSkyConfig(sky_config)
+        
+        -- If entering Nexus (dimension 1), override moon scale with current progress
+        if new_dimension == 1 then
+          Sky.SetMoonScale(CurrentMoonScale)
+          Sky.Reconstruct()
+        end
       end
 
       local ost = v.ost

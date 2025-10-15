@@ -61,6 +61,14 @@ function Dimension:TrackEntity(entity)
     table.insert(self.spawned_entities, entity)
 end
 
+--- Tracks a timer for later cleanup
+function Dimension:TrackTimer(timer)
+    if not self.tracked_timers then
+        self.tracked_timers = {}
+    end
+    table.insert(self.tracked_timers, timer)
+end
+
 --- Starts periodic objective checking
 function Dimension:StartObjectiveCheck()
     if self.objective_check_timer then
@@ -93,6 +101,23 @@ function Dimension:CompleteObjective()
 
     -- Broadcast completion message
     Chat.BroadcastMessage("Dream '" .. self.name .. "' is over...")
+    
+    -- Send cryptic lore message for objective completion
+    local completion_lore_messages = {
+        "Another dream fragment fades into memory...",
+        "The moon grows heavier... can you feel its weight?",
+        "One step closer to the inevitable...",
+        "The dreamscape trembles as another realm collapses...",
+        "Time... it's running out...",
+        "The moon's descent quickens...",
+        "Another piece of the nightmare ends...",
+        "The void between dreams grows smaller..."
+    }
+    local random_lore = completion_lore_messages[math.random(#completion_lore_messages)]
+    Chat.BroadcastMessage(random_lore)
+
+    -- Increment moon scale for game progress
+    IncrementMoonScale()
 
     -- Send all players back to dimension 1 (Nexus)
     self:ReturnAllPlayers()
@@ -150,6 +175,16 @@ function Dimension:Cleanup()
         end
     end
     self.spawned_entities = {}
+    
+    -- Clear tracked timers
+    if self.tracked_timers then
+        for _, timer in ipairs(self.tracked_timers) do
+            if timer and Timer.ClearInterval then
+                Timer.ClearInterval(timer)
+            end
+        end
+        self.tracked_timers = {}
+    end
 
     self.is_spawned = false
 end

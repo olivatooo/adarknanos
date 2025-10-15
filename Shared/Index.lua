@@ -9,17 +9,17 @@ DoorToNexus = {
   name = "Nexus",
   ost = "1.ogg",
   SkyConfig = {
-    Hour = 0,
-    MoonAngle = 0,
-    Fog = 0,
-    MoonGlowIntensity = 0,
-    MoonLightIntensity = 0,
+    Hour = 3,
+    MoonAngle = 90,
+    Fog = 10,
+    MoonGlowIntensity = 0.5,
+    MoonLightIntensity = 0.5,
     MoonPhase = 0,
-    NightBrightness = 0,
-    OverallIntensity = 0,
-    VolumetricCloudColor = Color(1, 1, 1),
+    NightBrightness = 1,
+    OverallIntensity = 1,
+    VolumetricCloudColor = Color(100, 1, 1),
     SkyMode = SkyMode.VolumetricClouds,
-    MoonScale = 1.0,
+    MoonScale = 1.0, -- Will be dynamically updated based on game progress (1-50)
   }
 }
 
@@ -72,7 +72,7 @@ DoorToBaloonWorld = {
 }
 
 DoorToRoundMaze = {
-  sm = "nanos-world::SM_Portapotty_Door",
+  sm = "nanos-world::SM_Cube",
   custom_texture = nil,
   custom_color = Color(0.53, 0.12, 0.92), -- Deep purple
   spawn_function = nil,
@@ -81,15 +81,15 @@ DoorToRoundMaze = {
   name = "Round Maze",
   ost = "4.ogg",
   SkyConfig = {
-    Hour = 12,
-    MoonAngle = 0,
-    Fog = 0,
-    MoonGlowIntensity = 0,
-    MoonLightIntensity = 0,
-    MoonPhase = 0,
-    NightBrightness = 0,
-    OverallIntensity = 0,
-    VolumetricCloudColor = Color(1, 1, 1),
+    Hour = 20,
+    MoonAngle = 45,
+    Fog = 0.3,
+    MoonGlowIntensity = 0.5,
+    MoonLightIntensity = 0.3,
+    MoonPhase = 0.5,
+    NightBrightness = 0.5,
+    OverallIntensity = 0.7,
+    VolumetricCloudColor = Color(0.53, 0.12, 0.92), -- Match door color
     SkyMode = SkyMode.VolumetricClouds,
     MoonScale = 1.0,
   }
@@ -120,7 +120,7 @@ DoorToShack = {
 }
 
 DoorToConstructionHell = {
-  sm = "nanos-world::SM_Portapotty_Door",
+  sm = "nanos-world::SM_OilDrum",
   custom_texture = nil,
   custom_color = Color(0.13, 0.84, 0.94), -- Electric blue
   spawn_function = nil,
@@ -129,17 +129,18 @@ DoorToConstructionHell = {
   name = "Construction",
   ost = "6.ogg",
   SkyConfig = {
-    Hour = 12,
-    MoonAngle = 0,
-    Fog = 0,
-    MoonGlowIntensity = 0,
-    MoonLightIntensity = 0,
+    Hour = 3,
+    MoonAngle = 90,
+    Fog = 20,
+    MoonGlowIntensity = 10,
+    MoonLightIntensity = 10,
     MoonPhase = 0,
     NightBrightness = 0,
     OverallIntensity = 0,
-    VolumetricCloudColor = Color(1, 1, 1),
+    VolumetricCloudColor = Color(100, 1, 1),
     SkyMode = SkyMode.VolumetricClouds,
     MoonScale = 1.0,
+    Weather = WeatherType.Snow
   }
 }
 

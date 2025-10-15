@@ -14,19 +14,6 @@ end)
 
 function SpawnSky(lock_timer)
   Sky.Spawn()
-  Sky.SetTimeOfDay(3, 0)
-  Sky.SetMoonAngle(0, 0)
-  -- Sky.SetFog(35.0)
-  -- Sky.SetMoonGlowIntensity(0)
-  -- Sky.SetMoonLightIntensity(0)
-  -- Sky.SetMoonPhase(0)
-  -- Sky.SetMoonScale(0)
-  -- Sky.SetNightBrightness(0)
-  -- Sky.SetOverallIntensity(0)
-  Sky.SetVolumetricCloudColor(Color(100, 0, 0))
-  Sky.SetSkyMode(SkyMode.VolumetricClouds)
-  Sky.SetMoonScale(50.0)
-  Sky.Reconstruct()
   if lock_timer then
     LockTimer = Timer.SetInterval(function()
       local ret_01, ret_02, ret_03 = Sky.GetTimeOfDay()
@@ -53,6 +40,7 @@ function SetSky(hour, moon_angle, fog, moon_glow_intensity, moon_light_intensity
 end
 
 function SetSkyConfig(sky_config)
+  Console.Log("Applying new sky config")
   SetSky(sky_config.Hour, sky_config.MoonAngle, sky_config.Fog, sky_config.MoonGlowIntensity,
     sky_config.MoonLightIntensity, sky_config.MoonPhase, sky_config.MoonScale, sky_config.NightBrightness,
     sky_config.OverallIntensity, sky_config.MoonTexture)
@@ -60,7 +48,25 @@ end
 
 Events.SubscribeRemote("SetSky", SetSky)
 
+-- Moon scale tracking (synced from server)
+CurrentMoonScale = 1
+
+-- Event to receive moon scale updates from server
+Events.SubscribeRemote("UpdateMoonScale", function(new_moon_scale)
+  CurrentMoonScale = new_moon_scale
+  Console.Log("Moon Scale updated to: " .. CurrentMoonScale)
+  Sky.SetMoonScale(CurrentMoonScale)
+  Sky.Reconstruct()
+end)
+
 SpawnSky(true)
+SetSkyConfig(DoorToNexus.SkyConfig)
+
+-- Apply current moon scale after initial sky setup
+Timer.SetTimeout(function()
+  Sky.SetMoonScale(CurrentMoonScale)
+  Sky.Reconstruct()
+end, 100) -- Small delay to ensure sky is fully initialized
 
 
 -- Loading a local file

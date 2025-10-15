@@ -81,7 +81,7 @@ local function SpawnWildernessContent(dimension)
         dimension:TrackEntity(awp)
     end
 
-    for i = 1, 25 do
+    for i = 1, 35 do
         local bot = Character(Vector(math.random(-50000, 50000), math.random(-50000, 50000), 1000), Rotator())
         bot:SetFallDamageTaken(0)
         bot:SetDimension(dimension.id)
@@ -89,6 +89,22 @@ local function SpawnWildernessContent(dimension)
         bot:SetHealth(1)
         bot:Subscribe("Death", function(self)
             NumberOfKilledBots = NumberOfKilledBots + 1
+            
+            -- Send cryptic lore messages for objective progression
+            if NumberOfKilledBots % 5 == 0 then -- Every 5 kills
+                local progression_messages = {
+                    "The wilderness grows restless... something stirs...",
+                    "Blood stains the dreamscape... the moon watches...",
+                    "The hunt continues... but what are we really hunting?",
+                    "Another falls... the nightmare deepens...",
+                    "The wild things grow silent... they know what comes...",
+                    "Death echoes through the dream... reality shudders...",
+                    "The wilderness remembers... it always remembers...",
+                    "The hunt brings us closer... to what end?"
+                }
+                local random_msg = progression_messages[math.random(#progression_messages)]
+                Chat.BroadcastMessage(random_msg)
+            end
         end)
     end
 
@@ -124,8 +140,7 @@ local function SpawnWildernessContent(dimension)
 end
 
 local function WildernessObjective(dimension)
-    Console.Log("Wilderness objective: " .. NumberOfKilledBots .. " bots killed")
-    if NumberOfKilledBots == 1 then
+    if NumberOfKilledBots == 2 then
         return true
     end
     return false
@@ -145,4 +160,3 @@ WildernessDimension = Dimension.new(
 
 -- Spawn the dimension immediately
 WildernessDimension:Spawn()
-

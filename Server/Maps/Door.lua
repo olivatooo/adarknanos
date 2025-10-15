@@ -74,6 +74,21 @@ function DimensionDoor:OnInteract(character)
     local player = character:GetPlayer()
     if player then
         Chat.BroadcastMessage(player:GetName() .. " dreamed about " .. self.name)
+        
+        -- Send cryptic lore message for door entry
+        local door_lore_messages = {
+            "The threshold beckons... what dreams await beyond?",
+            "Through the door, the dreamscape shifts...",
+            "Another fragment of the mind's labyrinth opens...",
+            "The boundary between worlds dissolves...",
+            "Step through... the moon watches from above...",
+            "Beyond this door lies another piece of the puzzle...",
+            "The dream calls... will you answer?",
+            "Through the veil of consciousness we pass..."
+        }
+        local random_lore = door_lore_messages[math.random(#door_lore_messages)]
+        Chat.BroadcastMessage(random_lore)
+        
         player:SetDimension(self.dimension)
         character:SetDimension(self.dimension)
         Events.CallRemote("DimensionDoorInteracted", player, self.dimension)

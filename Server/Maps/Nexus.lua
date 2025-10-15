@@ -1,5 +1,7 @@
 Package.Require("Door.lua")
 Package.Require("Wilderness.lua")
+Package.Require("RoundMaze.lua")
+Package.Require("ConstructionHell.lua")
 
 
 function SpawnNexus(location, radius)
