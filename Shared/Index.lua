@@ -11,7 +11,7 @@ DoorToNexus = {
   SkyConfig = {
     Hour = 3,
     MoonAngle = 90,
-    Fog = 10,
+    Fog = 45,
     MoonGlowIntensity = 0.5,
     MoonLightIntensity = 0.5,
     MoonPhase = 0,
@@ -20,6 +20,7 @@ DoorToNexus = {
     VolumetricCloudColor = Color(100, 1, 1),
     SkyMode = SkyMode.VolumetricClouds,
     MoonScale = 1.0, -- Will be dynamically updated based on game progress (1-50)
+    Weather = WeatherType.Foggy
   }
 }
 
@@ -35,7 +36,7 @@ DoorToWilderness = {
   SkyConfig = {
     Hour = 12,
     MoonAngle = 0,
-    Fog = 0,
+    Fog = 10,
     MoonGlowIntensity = 0,
     MoonLightIntensity = 0,
     MoonPhase = 0,
@@ -81,16 +82,17 @@ DoorToRoundMaze = {
   name = "Round Maze",
   ost = "4.ogg",
   SkyConfig = {
-    Hour = 20,
+    Hour = 5,
     MoonAngle = 45,
-    Fog = 0.3,
+    Fog = 100,
     MoonGlowIntensity = 0.5,
     MoonLightIntensity = 0.3,
     MoonPhase = 0.5,
-    NightBrightness = 0.5,
-    OverallIntensity = 0.7,
-    VolumetricCloudColor = Color(0.53, 0.12, 0.92), -- Match door color
+    NightBrightness = 5,
+    OverallIntensity = 100,
+    VolumetricCloudColor = Color(1, 1, 100), -- Match door color
     SkyMode = SkyMode.VolumetricClouds,
+    Weather = WeatherType.SnowBlizzard,
     MoonScale = 1.0,
   }
 }
@@ -145,7 +147,7 @@ DoorToConstructionHell = {
 }
 
 DoorToCrateWorld = {
-  sm = "nanos-world::SM_Portapotty_Door",
+  sm = "nanos-world::SM_Crate_07",
   custom_texture = nil,
   custom_color = Color(0.94, 0.23, 0.55), -- Neon pink
   spawn_function = nil,
@@ -154,17 +156,18 @@ DoorToCrateWorld = {
   name = "Crate",
   ost = "7.ogg",
   SkyConfig = {
-    Hour = 12,
-    MoonAngle = 0,
-    Fog = 0,
-    MoonGlowIntensity = 0,
-    MoonLightIntensity = 0,
+    Hour = 3,
+    MoonAngle = 90,
+    Fog = 15,
+    MoonGlowIntensity = 10,
+    MoonLightIntensity = 10,
     MoonPhase = 0,
     NightBrightness = 0,
     OverallIntensity = 0,
-    VolumetricCloudColor = Color(1, 1, 1),
+    VolumetricCloudColor = Color(1, 100, 1),
     SkyMode = SkyMode.VolumetricClouds,
     MoonScale = 1.0,
+    Weather = WeatherType.Rain
   }
 }
 
@@ -249,3 +252,7 @@ Doors = {
   DoorToFood,
   DoorToEmojiWorld,
 }
+
+function RandomFloat(lower, greater)
+  return lower + math.random() * (greater - lower);
+end

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adarknanos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        /* Jumpscare Container */
+        #jumpscare {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: black;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+
+        #jumpscare.active {
+            display: flex;
+            animation: jumpscare-flash 0.1s infinite;
+        }
+
+        @keyframes jumpscare-flash {
+            0%, 100% { 
+                background: black; 
+                opacity: 1;
+            }
+            50% { 
+                background: #ff0000; 
+                opacity: 0.8;
+            }
+        }
+
+        #jumpscare-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.3) contrast(2) saturate(0);
+            animation: jumpscare-glitch 0.05s infinite;
+        }
+
+        @keyframes jumpscare-glitch {
+            0% { transform: translate(0, 0) scale(1); }
+            20% { transform: translate(-10px, 5px) scale(1.02); }
+            40% { transform: translate(10px, -5px) scale(0.98); }
+            60% { transform: translate(-5px, -10px) scale(1.01); }
+            80% { transform: translate(5px, 10px) scale(0.99); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        #jumpscare-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 120px;
+            color: red;
+            text-shadow: 0 0 20px red, 0 0 40px red;
+            font-weight: bold;
+            animation: jumpscare-text-shake 0.1s infinite;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+        }
+
+        @keyframes jumpscare-text-shake {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-52%, -48%) rotate(-2deg); }
+            50% { transform: translate(-48%, -52%) rotate(2deg); }
+            75% { transform: translate(-52%, -52%) rotate(-1deg); }
+            100% { transform: translate(-50%, -50%) rotate(0deg); }
+        }
+
+        #jumpscare-sound {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Screen distortion overlay */
+        #distortion-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 10000;
+            display: none;
+        }
+
+        #distortion-overlay.active {
+            display: block;
+            animation: distortion-flicker 0.05s infinite;
+        }
+
+        @keyframes distortion-flicker {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Jumpscare Container -->
+    <div id="jumpscare">
+        <div id="jumpscare-text">BLOODHOUND</div>
+        <audio id="jumpscare-sound" src="" preload="auto"></audio>
+    </div>
+
+    <!-- Distortion Overlay -->
+    <div id="distortion-overlay"></div>
+
+    <script src="index.js"></script>
+</body>
+</html>
+

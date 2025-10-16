@@ -1,4 +1,5 @@
 Input.Register("SpawnMenu", "Q")
+Sky.Spawn(true)
 
 Input.Subscribe("KeyDown", function(key_name)
   if key_name == "P" then
@@ -13,7 +14,6 @@ end)
 
 
 function SpawnSky(lock_timer)
-  Sky.Spawn()
   if lock_timer then
     LockTimer = Timer.SetInterval(function()
       local ret_01, ret_02, ret_03 = Sky.GetTimeOfDay()
@@ -25,7 +25,7 @@ function SpawnSky(lock_timer)
 end
 
 function SetSky(hour, moon_angle, fog, moon_glow_intensity, moon_light_intensity, moon_phase, moon_scale,
-                night_brightness, overall_intensity, moon_texture)
+                night_brightness, overall_intensity, moon_texture, weather)
   Sky.SetTimeOfDay(hour, 0)
   Sky.SetMoonAngle(moon_angle, 0)
   Sky.SetFog(fog)
@@ -36,6 +36,9 @@ function SetSky(hour, moon_angle, fog, moon_glow_intensity, moon_light_intensity
   Sky.SetNightBrightness(night_brightness)
   Sky.SetOverallIntensity(overall_intensity)
   -- Sky.SetMoonTexture(moon_texture)
+  if weather ~= nil then
+    Sky.ChangeWeather(weather, 0)
+  end
   Sky.Reconstruct()
 end
 
@@ -43,7 +46,7 @@ function SetSkyConfig(sky_config)
   Console.Log("Applying new sky config")
   SetSky(sky_config.Hour, sky_config.MoonAngle, sky_config.Fog, sky_config.MoonGlowIntensity,
     sky_config.MoonLightIntensity, sky_config.MoonPhase, sky_config.MoonScale, sky_config.NightBrightness,
-    sky_config.OverallIntensity, sky_config.MoonTexture)
+    sky_config.OverallIntensity, sky_config.MoonTexture, sky_config.Weather)
 end
 
 Events.SubscribeRemote("SetSky", SetSky)
@@ -75,5 +78,24 @@ local my_ui = WebUI(
   "file://UI/index.html",  -- Path relative to this package (Client/)
   WidgetVisibility.Visible -- Is Visible on Screen
 )
+
+-- Subscribe to jumpscare trigger from server
+Events.SubscribeRemote("TriggerJumpscare", function()
+  Console.Log("Jumpscare received from server!")
+  my_ui:CallEvent("TriggerJumpscare")
+  
+  -- Camera shake effect
+  local my_char = Client.GetLocalPlayer():GetControlledCharacter()
+  if my_char and my_char:IsValid() then
+    my_char:SetCameraShakeIntensity(2.0)
+    
+    -- Reset camera shake after jumpscare
+    Timer.SetTimeout(function()
+      if my_char:IsValid() then
+        my_char:SetCameraShakeIntensity(0)
+      end
+    end, 1000)
+  end
+end)
 
 Package.Require("Dimensions.lua")

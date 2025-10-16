@@ -1,4 +1,5 @@
 Package.Require("Debug.lua")
+Package.Require("Bloodhound.lua")
 Server.LoadPackage("default-vehicles")
 Server.LoadPackage("default-weapons")
 

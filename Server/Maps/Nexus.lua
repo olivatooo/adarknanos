@@ -2,9 +2,13 @@ Package.Require("Door.lua")
 Package.Require("Wilderness.lua")
 Package.Require("RoundMaze.lua")
 Package.Require("ConstructionHell.lua")
+Package.Require("Crate.lua")
 
 
 function SpawnNexus(location, radius)
+        -- Spawn a Bloodhound in dimension 1
+    local bloodhound = Bloodhound.new(Vector(200, 200, 100), 1)
+
     local spawnedDoors = {}
     local doorCount = #Doors
     local doorIndex = 1
