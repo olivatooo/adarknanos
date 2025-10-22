@@ -19,8 +19,8 @@ DoorToNexus = {
     OverallIntensity = 1,
     VolumetricCloudColor = Color(100, 1, 1),
     SkyMode = SkyMode.VolumetricClouds,
+    Weather = WeatherType.ClearSkies,
     MoonScale = 1.0, -- Will be dynamically updated based on game progress (1-50)
-    Weather = WeatherType.Foggy
   }
 }
 
@@ -44,6 +44,7 @@ DoorToWilderness = {
     OverallIntensity = 0,
     VolumetricCloudColor = Color(1, 1, 1),
     SkyMode = SkyMode.VolumetricClouds,
+    Weather = WeatherType.Foggy,
     MoonScale = 1.0,
   }
 }
@@ -68,6 +69,7 @@ DoorToBaloonWorld = {
     OverallIntensity = 0,
     VolumetricCloudColor = Color(1, 1, 1),
     SkyMode = SkyMode.VolumetricClouds,
+    Weather = WeatherType.RainLight,
     MoonScale = 1.0,
   }
 }
@@ -80,19 +82,19 @@ DoorToRoundMaze = {
   unlocked = false,
   dimension = 4,
   name = "Round Maze",
-  ost = "4.ogg",
+  ost = "circle.ogg",
   SkyConfig = {
     Hour = 5,
     MoonAngle = 45,
     Fog = 100,
-    MoonGlowIntensity = 0.5,
-    MoonLightIntensity = 0.3,
-    MoonPhase = 0.5,
-    NightBrightness = 5,
-    OverallIntensity = 100,
-    VolumetricCloudColor = Color(1, 1, 100), -- Match door color
+    MoonGlowIntensity = 0.0,
+    MoonLightIntensity = 0.0,
+    MoonPhase = 0.0,
+    NightBrightness = 0,
+    OverallIntensity = 0,
+    VolumetricCloudColor = Color(100, 1, 1), -- Match door color
     SkyMode = SkyMode.VolumetricClouds,
-    Weather = WeatherType.SnowBlizzard,
+    Weather = WeatherType.RainLight,
     MoonScale = 1.0,
   }
 }
@@ -117,6 +119,7 @@ DoorToShack = {
     OverallIntensity = 0,
     VolumetricCloudColor = Color(1, 1, 1),
     SkyMode = SkyMode.VolumetricClouds,
+    Weather = WeatherType.ClearSkies,
     MoonScale = 1.0,
   }
 }
@@ -141,8 +144,8 @@ DoorToConstructionHell = {
     OverallIntensity = 0,
     VolumetricCloudColor = Color(100, 1, 1),
     SkyMode = SkyMode.VolumetricClouds,
+    Weather = WeatherType.Snow,
     MoonScale = 1.0,
-    Weather = WeatherType.Snow
   }
 }
 
@@ -154,7 +157,7 @@ DoorToCrateWorld = {
   unlocked = false,
   dimension = 7,
   name = "Crate",
-  ost = "7.ogg",
+  ost = "crates.ogg",
   SkyConfig = {
     Hour = 3,
     MoonAngle = 90,

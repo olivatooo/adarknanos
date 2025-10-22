@@ -101,23 +101,11 @@ function Dimension:CompleteObjective()
 
     -- Broadcast completion message
     Chat.BroadcastMessage("Dream '" .. self.name .. "' is over...")
-    
-    -- Send cryptic lore message for objective completion
-    local completion_lore_messages = {
-        "Another dream fragment fades into memory...",
-        "The moon grows heavier... can you feel its weight?",
-        "One step closer to the inevitable...",
-        "The dreamscape trembles as another realm collapses...",
-        "Time... it's running out...",
-        "The moon's descent quickens...",
-        "Another piece of the nightmare ends...",
-        "The void between dreams grows smaller..."
-    }
-    local random_lore = completion_lore_messages[math.random(#completion_lore_messages)]
-    Chat.BroadcastMessage(random_lore)
-
     -- Increment moon scale for game progress
     IncrementMoonScale()
+
+    -- Increment global objectives (for reward system)
+    RewardSystem.IncrementGlobalObjectives()
 
     -- Send all players back to dimension 1 (Nexus)
     self:ReturnAllPlayers()
@@ -134,15 +122,17 @@ function Dimension:ReturnAllPlayers()
     local players = Player.GetAll()
     for _, player in pairs(players) do
         if player:GetDimension() == self.id then
+            -- Events.CallRemote("DimensionDoorInteracted", player, 0)
             player:SetDimension(1) -- Return to Nexus
             Events.CallRemote("PlayOST", player, "1.ogg")
-
-            -- Also move their character if they have one
             local character = player:GetControlledCharacter()
             if character then
                 character:SetDimension(1)
                 -- Optionally teleport them to a spawn point
-                character:SetLocation(Vector(0, 0, 200)) -- Adjust as needed
+                character:SetLocation(Vector(math.random(-500, 500), math.random(-500, 500), 200)) -- Adjust as needed
+
+                -- Apply rewards when returning to nexus after objective completion
+                RewardSystem.ApplyRewards(character)
             end
         end
     end
@@ -175,7 +165,7 @@ function Dimension:Cleanup()
         end
     end
     self.spawned_entities = {}
-    
+
     -- Clear tracked timers
     if self.tracked_timers then
         for _, timer in ipairs(self.tracked_timers) do

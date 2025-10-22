@@ -82,14 +82,18 @@ local function SpawnWildernessContent(dimension)
     end
 
     for i = 1, 35 do
-        local bot = Character(Vector(math.random(-50000, 50000), math.random(-50000, 50000), 1000), Rotator())
+        local bot = Character(Vector(math.random(-50000, 50000), math.random(-50000, 50000), 1000), Rotator(),
+            "nanos-world::SK_AncientUgandan")
+        Timer.SetInterval(function(_char)
+            if not _char:IsValid() then return false end
+            _char:MoveTo(Vector(math.random(-50000, 50000), math.random(-50000, 50000), 50), 200)
+        end, 20000, bot)
         bot:SetFallDamageTaken(0)
         bot:SetDimension(dimension.id)
-        bot:SetMaterialColorParameter("Tint", Color.RED)
-        bot:SetHealth(1)
+        -- bot:SetMaterialColorParameter("Tint", Color.RED)
+        bot:SetHealth(5)
         bot:Subscribe("Death", function(self)
             NumberOfKilledBots = NumberOfKilledBots + 1
-            
             -- Send cryptic lore messages for objective progression
             if NumberOfKilledBots % 5 == 0 then -- Every 5 kills
                 local progression_messages = {
@@ -105,6 +109,8 @@ local function SpawnWildernessContent(dimension)
                 local random_msg = progression_messages[math.random(#progression_messages)]
                 Chat.BroadcastMessage(random_msg)
             end
+
+            Bloodhound.new(Vector(math.random(-40000, 40000), math.random(-40000, 40000), 100), dimension.id)
         end)
     end
 
@@ -116,6 +122,8 @@ local function SpawnWildernessContent(dimension)
     sm:SetMaterialTextureParameter("Texture", "package://adarknanos/Client/grass.jpg")
     sm:SetMaterialScalarParameter("Metallic", 0)
     sm:SetMaterialScalarParameter("Specular ", 0)
+    sm:SetMaterialScalarParameter("VTiling", 100)
+    sm:SetMaterialScalarParameter("UTiling", 100)
     sm:SetDimension(dimension.id)
 
     Console.Log("Spawned " .. #dimension.spawned_entities .. " trees in Wilderness dimension")
@@ -140,7 +148,7 @@ local function SpawnWildernessContent(dimension)
 end
 
 local function WildernessObjective(dimension)
-    if NumberOfKilledBots == 2 then
+    if NumberOfKilledBots == 25 then
         return true
     end
     return false

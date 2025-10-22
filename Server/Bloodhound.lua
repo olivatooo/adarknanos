@@ -8,33 +8,32 @@ setmetatable(Bloodhound, { __index = Character })
 
 -- Available animations to randomly play
 local BloodhoundAnimations = {
-    "nanos-world::AM_Mannequin_Rifle_Idle",
-    "nanos-world::AM_Mannequin_Crouched_Idle",
-    "nanos-world::AM_Mannequin_Prone_Idle",
-    "nanos-world::A_MannequinCharacter_Throw",
-    "nanos-world::AM_Mannequin_Crouch_Moving",
+    "nanos-world::AM_Mannequin_CoffinDance",
+    "nanos-world::AM_Mannequin_Torch_Attack",
+    "nanos-world::AM_Mannequin_Melee_Bayonet_Stab_Attack",
+    "nanos-world::AM_Mannequin_Melee_Slash_Attack",
+    "nanos-world::A_Zombie_Chase_Loop",
+    "nanos-world::A_Zombie_Attack_Loop",
 }
 
 -- Props that can randomly spawn
 local RandomProps = {
-    "nanos-world::SM_Cube",
-    "nanos-world::SM_Sphere",
-    "nanos-world::SM_Cylinder",
-    "nanos-world::SM_Cone",
-    "nanos-world::SM_WoodenCrate",
-    "nanos-world::SM_WoodenCrate_02",
+    "nanos-world::SM_Rock_03",
+    "nanos-world::SM_Rock_04",
+    "nanos-world::SM_Rock_05",
+    "nanos-world::SM_Rock_06",
+    "nanos-world::SM_Rock_07",
 }
 
 -- Create a new Bloodhound instance
-function Bloodhound.new(location, dimension_id)
-    -- Spawn the base character
+function Bloodhound.new(location, dimension_id, difficulty)
     local character = Character(
         location,
         Rotator(0, math.random(0, 360), 0),
         "nanos-world::SK_Mannequin",
         CollisionType.Normal,
         true,
-        1 -- Only 1 health
+        5 * difficulty
     )
 
     local self = setmetatable({}, Bloodhound)
@@ -49,23 +48,29 @@ function Bloodhound.new(location, dimension_id)
     character:SetDimension(dimension_id)
 
     -- Make it creepy
-    character:SetMaterialColorParameter("Tint", Color(0.1, 0.1, 0.1)) -- Dark
+    character:SetMaterialColorParameter("Tint", Color(0.0, 0.0, 0.0)) -- Dark
 
     -- Start all the random behaviors
     self:StartRandomScale()
     self:StartRandomFlicker()
     self:StartRandomSpeed()
-    self:StartRandomAnimation()
-    self:StartRandomPropSpawning()
+    -- self:StartRandomAnimation()
+    character:PlayAnimation("nanos-world::A_Zombie_HyperChase_Loop", AnimationSlotType.FullBody, true, nil, nil, 2.0)
+    -- self:StartRandomPropSpawning()
     self:StartRandomMovement()
     self:StartPlayerTracking()
-    self:StartRandomTeleport()
+    if difficulty >= 3 then
+        self:StartRandomTeleport()
+    end
 
     -- Subscribe to death
-    character:Subscribe("Death", function()
+    character:Subscribe("Death", function(self)
+        Events.BroadcastRemoteDimension(self:GetDimension(), "BloodhoundSFX", "inv_wosh.ogg")
         self:Destroy()
     end)
 
+    Console.Log("Bloodhound spawned at " ..
+        tostring(character:GetLocation()) .. " in dimension " .. tostring(character:GetDimension()))
     return self
 end
 
@@ -73,13 +78,11 @@ end
 function Bloodhound:StartRandomScale()
     local timer = Timer.SetInterval(function()
         if not self.is_active or not self.character:IsValid() then return end
-
-        local scale_x = math.random(50, 200) / 100 -- 0.5 to 2.0
+        local scale_x = math.random(50, 200) / 100  -- 0.5 to 2.0
         local scale_y = math.random(50, 200) / 100
-        local scale_z = math.random(50, 300) / 100 -- Can be very tall
-
+        local scale_z = math.random(50, 1000) / 100 -- Can be very tall
         self.character:SetScale(Vector(scale_x, scale_y, scale_z))
-    end, math.random(1000, 3000))
+    end, math.random(10000, 30000))
 
     table.insert(self.timers, timer)
 end
@@ -91,9 +94,9 @@ function Bloodhound:StartRandomFlicker()
 
         local current_pos = self.character:GetLocation()
         local flicker_offset = Vector(
-            math.random(-50, 50),
-            math.random(-50, 50),
-            math.random(-20, 20)
+            math.random(-100, 100),
+            math.random(-100, 100),
+            0
         )
 
         self.character:SetLocation(current_pos + flicker_offset)
@@ -104,7 +107,7 @@ function Bloodhound:StartRandomFlicker()
                 self.character:SetLocation(current_pos)
             end
         end, math.random(50, 150))
-    end, math.random(1000, 3000))
+    end, math.random(100, 500))
 
     table.insert(self.timers, timer)
 end
@@ -113,9 +116,8 @@ end
 function Bloodhound:StartRandomSpeed()
     local timer = Timer.SetInterval(function()
         if not self.is_active or not self.character:IsValid() then return end
-
-        local speed = math.random(50, 300) / 100 -- 0.5 to 3.0
-        self.character:SetSpeedMultiplier(speed)
+        self.character:SetSpeedMultiplier(15)
+        self.character:SetSpeedMultiplier(10)
     end, math.random(1000, 3000))
 
     table.insert(self.timers, timer)
@@ -145,17 +147,32 @@ function Bloodhound:StartRandomPropSpawning()
             char_pos + Vector(math.random(-200, 200), math.random(-200, 200), math.random(50, 200)),
             Rotator(math.random(0, 360), math.random(0, 360), math.random(0, 360)),
             prop_mesh,
-            CollisionType.Normal,
+            CollisionType.NoCollision,
             true
         )
 
+        local trigger = Trigger(prop:GetLocation(), Rotator(0, 0, 0), Vector(100), TriggerType.Sphere, false,
+            Color(0, 1, 0), { "Character" })
+        trigger:AttachTo(prop, nil, nil, 0)
+        trigger:Subscribe("BeginOverlap", function(trigger, actor)
+            local g = Grenade(
+                trigger:GetLocation(),
+                Rotator(0, 90, 90),
+                "nanos-world::SM_None",
+                "nanos-world::P_Grenade_Special",
+                "nanos-world::A_Explosion_Large"
+            )
+            g:SetDimension(self.dimension_id)
+            g:Explode()
+            trigger:Destroy()
+        end)
+
+
         prop:SetDimension(self.dimension_id)
-        prop:SetScale(Vector(
-            math.random(50, 300) / 100,
-            math.random(50, 300) / 100,
-            math.random(50, 300) / 100
-        ))
-        prop:SetMaterialColorParameter("Tint", Color(math.random(0, 100) / 100, 0, 0)) -- Red tint
+        trigger:SetDimension(self.dimension_id)
+        prop:SetMaterialColorParameter("Tint", Color(100, 0, 0))
+        prop:TranslateTo(char_pos + Vector(math.random(-2000, 2000), math.random(-2000, 2000), math.random(-200, 200)), 1,
+            2)
 
         table.insert(self.spawned_props, prop)
 
@@ -164,8 +181,8 @@ function Bloodhound:StartRandomPropSpawning()
             if prop:IsValid() then
                 prop:Destroy()
             end
-        end, math.random(2000, 5000))
-    end, math.random(3000, 7000))
+        end, math.random(200, 5000))
+    end, math.random(300, 7000))
 
     table.insert(self.timers, timer)
 end
@@ -179,31 +196,28 @@ function Bloodhound:StartRandomMovement()
         local char_pos = self.character:GetLocation()
 
         if movement_type == 1 then
-            -- MoveTo random position
             local target_pos = char_pos + Vector(
-                math.random(-500, 500),
-                math.random(-500, 500),
+                math.random(-5000, 5000),
+                math.random(-5000, 5000),
                 0
             )
             self.character:MoveTo(target_pos, 1)
         elseif movement_type == 2 then
-            -- TranslateTo random position
             local target_pos = char_pos + Vector(
                 math.random(-300, 300),
                 math.random(-300, 300),
                 math.random(-50, 50)
             )
-            self.character:TranslateTo(target_pos, math.random(1, 3))
+            self.character:SetLocation(target_pos)
         else
-            -- Instant SetLocation (teleport)
             local target_pos = char_pos + Vector(
                 math.random(-200, 200),
                 math.random(-200, 200),
-                0
+                Vector(1)
             )
             self.character:SetLocation(target_pos)
         end
-    end, math.random(2000, 5000))
+    end, math.random(200, 30000))
 
     table.insert(self.timers, timer)
 end
@@ -244,18 +258,25 @@ function Bloodhound:StartPlayerTracking()
                 -- Check for jumpscare distance (very close)
                 if nearest_distance < 300 then
                     Events.CallRemote("TriggerJumpscare", nearest_player)
-
-                    -- Attack the player
-                    player_char:ApplyDamage(25, "head", nil, self.character)
+                    Events.BroadcastRemoteDimension(self.dimension_id, "BloodhoundSFX",
+                        "painful_" .. tostring(math.random(1, 105)) .. ".ogg")
+                    player_char:ApplyDamage(100)
+                    if math.random() > 0.5 then
+                        self:Destroy()
+                    end
                 end
 
                 -- Sometimes move toward player
                 if math.random() > 0.5 then
-                    self.character:MoveTo(player_pos, 1)
+                    if character and character:IsValid() then
+                        self.character:MoveTo(player_pos, 1)
+                    end
+                    return false
+                else
                 end
             end
         end
-    end, 500) -- Check frequently for responsive tracking
+    end, math.random(100, 200))
 
     table.insert(self.timers, timer)
 end
@@ -263,9 +284,13 @@ end
 -- Random teleportation behind player
 function Bloodhound:StartRandomTeleport()
     local timer = Timer.SetInterval(function()
-        if not self.is_active or not self.character:IsValid() then return end
+        if not self.is_active or not self.character:IsValid() then
+            self.target_player = nil
+            self:Destroy()
+            return
+        end
 
-        if self.target_player then
+        if self.target_player and math.random() > 0.75 then
             local player_char = self.target_player:GetControlledCharacter()
             if player_char and player_char:IsValid() then
                 -- Teleport behind player
@@ -273,7 +298,7 @@ function Bloodhound:StartRandomTeleport()
                 local player_rot = player_char:GetRotation()
 
                 -- Calculate position behind player
-                local behind_distance = math.random(200, 500)
+                local behind_distance = math.random(0, 500)
                 local behind_offset = Vector(
                     -behind_distance * math.cos(math.rad(player_rot.Yaw)),
                     -behind_distance * math.sin(math.rad(player_rot.Yaw)),
@@ -281,20 +306,6 @@ function Bloodhound:StartRandomTeleport()
                 )
 
                 self.character:SetLocation(player_pos + behind_offset)
-
-                -- Face the player
-                local direction = (player_pos - self.character:GetLocation()):Normalize()
-                local yaw = math.deg(math.atan2(direction.Y, direction.X))
-                self.character:SetRotation(Rotator(0, yaw, 0))
-
-                -- Sometimes attack immediately after teleport
-                if math.random() > 0.7 then
-                    Timer.SetTimeout(function()
-                        if player_char:IsValid() then
-                            player_char:ApplyDamage(15, "head", nil, self.character)
-                        end
-                    end, 200)
-                end
             end
         end
     end, math.random(5000, 10000))

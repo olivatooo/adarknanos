@@ -14,13 +14,13 @@ end
 -- Helper function to convert HSV to RGB
 local function hsv_to_rgb(h, s, v)
     local r, g, b
-    
+
     local i = math.floor(h * 6)
     local f = h * 6 - i
     local p = v * (1 - s)
     local q = v * (1 - f * s)
     local t = v * (1 - (1 - f) * s)
-    
+
     local remainder = i % 6
     if remainder == 0 then
         r, g, b = v, t, p
@@ -35,7 +35,7 @@ local function hsv_to_rgb(h, s, v)
     else
         r, g, b = v, p, q
     end
-    
+
     return r, g, b
 end
 
@@ -136,7 +136,7 @@ local function SpawnRoundMazeContent(dimension)
         objective_cube:Subscribe("Interact", function(self, character)
             ObjectiveCubeFound = true
             Chat.BroadcastMessage("Objective cube found! Maze complete!")
-            
+
             -- Send cryptic lore message for maze completion
             local maze_completion_messages = {
                 "The maze's heart beats one last time...",
@@ -150,7 +150,7 @@ local function SpawnRoundMazeContent(dimension)
             }
             local random_msg = maze_completion_messages[math.random(#maze_completion_messages)]
             Chat.BroadcastMessage(random_msg)
-            
+
             Console.Log("Round Maze objective cube interacted!")
 
             -- Visual feedback - destroy the cube
@@ -170,26 +170,25 @@ local function SpawnRoundMazeContent(dimension)
     end
 
     -- Spawn ground plane
-    local ground = StaticMesh(Vector(0, 0, 1), Rotator(), "nanos-world::SM_Plane", CollisionType.Normal)
-    ground:SetScale(Vector(1000, 1000, 1))
-    ground:SetScale(Vector(50000, 50000, 1))
-    ground:SetMaterialColorParameter("Tint", Color(0.2, 0.2, 0.3))
+    local ground = StaticMesh(Vector(0, 0, 2), Rotator(), "nanos-world::SM_Plane", CollisionType.Normal)
+    ground:SetScale(Vector(2000, 2000, 1))
+    ground:SetMaterialTextureParameter("Texture", "package://adarknanos/Client/round.jpg")
     ground:SetDimension(dimension.id)
     dimension:TrackEntity(ground)
-    
+
     -- Add hue rotation timer for the ground
     local hue_rotation_timer = Timer.SetInterval(function()
         -- Get current time for smooth hue rotation
         local time = os.clock()
-        local hue = (time * 0.1) % 1  -- Slow rotation, cycles every 10 seconds
-        
+        local hue = (time * 0.1) % 1 -- Slow rotation, cycles every 10 seconds
+
         -- Convert HSV to RGB (hue, saturation=0.3, value=0.25)
         local r, g, b = hsv_to_rgb(hue, 0.3, 0.25)
-        
+
         -- Apply the new color to the ground
         ground:SetMaterialColorParameter("Tint", Color(r, g, b))
     end, 100) -- Update every 100ms for smooth animation
-    
+
     -- Track the timer for cleanup
     dimension:TrackTimer(hue_rotation_timer)
 
@@ -206,29 +205,29 @@ local function SpawnRoundMazeContent(dimension)
     )
 
     -- Add some lights for visibility
-    for i = 1, 8 do
-        local angle = (i - 1) * (2 * math.pi / 8)
-        local light_distance = 10000
-        local light_x = math.cos(angle) * light_distance
-        local light_y = math.sin(angle) * light_distance
-
-        local light = Light(
-            Vector(light_x, light_y, 2500),
-            Rotator(0, 0, 0),
-            RandomColor(),
-            LightType.Point,
-            10000,
-            5000,
-            0,
-            0,
-            50000,
-            true,
-            true,
-            true
-        )
-        light:SetDimension(dimension.id)
-        dimension:TrackEntity(light)
-    end
+    -- for i = 1, 8 do
+    --     local angle = (i - 1) * (2 * math.pi / 8)
+    --     local light_distance = 10000
+    --     local light_x = math.cos(angle) * light_distance
+    --     local light_y = math.sin(angle) * light_distance
+    --
+    --     local light = Light(
+    --         Vector(light_x, light_y, 2500),
+    --         Rotator(0, 0, 0),
+    --         RandomColor(),
+    --         LightType.Point,
+    --         10000,
+    --         5000,
+    --         0,
+    --         0,
+    --         50000,
+    --         true,
+    --         true,
+    --         true
+    --     )
+    --     light:SetDimension(dimension.id)
+    --     dimension:TrackEntity(light)
+    -- end
 end
 
 -- Objective function - complete when cube is found

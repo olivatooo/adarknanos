@@ -23,7 +23,7 @@ function DimensionDoor.new(location, rotation, dimension, name, color, mesh_asse
     self.custom_interact = on_interact
 
 
-    local clean = Trigger(location, rotation, Vector(500), TriggerType.Sphere, true)
+    local clean = Trigger(location, rotation, Vector(500), TriggerType.Sphere, false, Color(0, 0, 0), { "StaticMesh" })
 
     clean:Subscribe("BeginOverlap", function(self, entity)
         if entity:IsA(StaticMesh) then
@@ -35,7 +35,7 @@ function DimensionDoor.new(location, rotation, dimension, name, color, mesh_asse
     end)
     clean:SetDimension(dimension or 1)
 
-    local clean2 = Trigger(location, rotation, Vector(500), TriggerType.Sphere, true)
+    local clean2 = Trigger(location, rotation, Vector(500), TriggerType.Sphere, false, Color(0, 0, 0), { "StaticMesh" })
 
     clean2:Subscribe("BeginOverlap", function(self, entity)
         if entity:IsA(StaticMesh) then
@@ -46,6 +46,7 @@ function DimensionDoor.new(location, rotation, dimension, name, color, mesh_asse
         end
     end)
     clean2:SetDimension(from_dimension or 1)
+    clean2:SetOverlapOnlyClasses({ "StaticMesh" })
 
     Timer.SetTimeout(function()
         clean:Destroy()
@@ -74,21 +75,6 @@ function DimensionDoor:OnInteract(character)
     local player = character:GetPlayer()
     if player then
         Chat.BroadcastMessage(player:GetName() .. " dreamed about " .. self.name)
-        
-        -- Send cryptic lore message for door entry
-        local door_lore_messages = {
-            "The threshold beckons... what dreams await beyond?",
-            "Through the door, the dreamscape shifts...",
-            "Another fragment of the mind's labyrinth opens...",
-            "The boundary between worlds dissolves...",
-            "Step through... the moon watches from above...",
-            "Beyond this door lies another piece of the puzzle...",
-            "The dream calls... will you answer?",
-            "Through the veil of consciousness we pass..."
-        }
-        local random_lore = door_lore_messages[math.random(#door_lore_messages)]
-        Chat.BroadcastMessage(random_lore)
-        
         player:SetDimension(self.dimension)
         character:SetDimension(self.dimension)
         Events.CallRemote("DimensionDoorInteracted", player, self.dimension)
@@ -115,4 +101,3 @@ end
 function DimensionDoor:GetProp()
     return self.prop
 end
-

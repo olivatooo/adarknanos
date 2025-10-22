@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,13 +11,13 @@
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Courier New', monospace;
             overflow: hidden;
         }
-
         /* Jumpscare Container */
+        
         #jumpscare {
             position: fixed;
             top: 0;
@@ -31,23 +32,24 @@
             opacity: 0;
             transition: opacity 0.1s;
         }
-
+        
         #jumpscare.active {
             display: flex;
             animation: jumpscare-flash 0.1s infinite;
         }
-
+        
         @keyframes jumpscare-flash {
-            0%, 100% { 
-                background: black; 
+            0%,
+            100% {
+                background: black;
                 opacity: 1;
             }
-            50% { 
-                background: #ff0000; 
+            50% {
+                background: #ff0000;
                 opacity: 0.8;
             }
         }
-
+        
         #jumpscare-image {
             width: 100%;
             height: 100%;
@@ -55,16 +57,28 @@
             filter: brightness(0.3) contrast(2) saturate(0);
             animation: jumpscare-glitch 0.05s infinite;
         }
-
+        
         @keyframes jumpscare-glitch {
-            0% { transform: translate(0, 0) scale(1); }
-            20% { transform: translate(-10px, 5px) scale(1.02); }
-            40% { transform: translate(10px, -5px) scale(0.98); }
-            60% { transform: translate(-5px, -10px) scale(1.01); }
-            80% { transform: translate(5px, 10px) scale(0.99); }
-            100% { transform: translate(0, 0) scale(1); }
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            20% {
+                transform: translate(-10px, 5px) scale(1.02);
+            }
+            40% {
+                transform: translate(10px, -5px) scale(0.98);
+            }
+            60% {
+                transform: translate(-5px, -10px) scale(1.01);
+            }
+            80% {
+                transform: translate(5px, 10px) scale(0.99);
+            }
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
         }
-
+        
         #jumpscare-text {
             position: absolute;
             top: 50%;
@@ -78,52 +92,412 @@
             letter-spacing: 10px;
             text-transform: uppercase;
         }
-
+        
         @keyframes jumpscare-text-shake {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-52%, -48%) rotate(-2deg); }
-            50% { transform: translate(-48%, -52%) rotate(2deg); }
-            75% { transform: translate(-52%, -52%) rotate(-1deg); }
-            100% { transform: translate(-50%, -50%) rotate(0deg); }
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            25% {
+                transform: translate(-52%, -48%) rotate(-2deg);
+            }
+            50% {
+                transform: translate(-48%, -52%) rotate(2deg);
+            }
+            75% {
+                transform: translate(-52%, -52%) rotate(-1deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
         }
-
+        
         #jumpscare-sound {
             position: absolute;
             opacity: 0;
             pointer-events: none;
         }
-
         /* Screen distortion overlay */
+        
         #distortion-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.15),
-                rgba(0, 0, 0, 0.15) 1px,
-                transparent 1px,
-                transparent 2px
-            );
+            background: repeating-linear-gradient( 0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
             pointer-events: none;
             z-index: 10000;
             display: none;
         }
-
+        
         #distortion-overlay.active {
             display: block;
             animation: distortion-flicker 0.05s infinite;
         }
-
+        
         @keyframes distortion-flicker {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 0.4; }
+            0%,
+            100% {
+                opacity: 0.8;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+        /* Objectives Tracker */
+        
+        #objectives-tracker {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        #objectives-dots {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        
+        .objective-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.5s ease;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .objective-dot.completed {
+            background: rgba(255, 215, 0, 0.8);
+            border-color: rgba(255, 215, 0, 1);
+            color: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.6);
+                transform: scale(1.05);
+            }
+        }
+        /* Credits Container */
+        
+        #credits-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, #000000 0%, #0a0a1a 50%, #000000 100%);
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 9998;
+            overflow: hidden;
+        }
+        
+        #credits-container.active {
+            display: flex;
+        }
+        
+        #credits-content {
+            position: absolute;
+            bottom: -100%;
+            width: 80%;
+            max-width: 800px;
+            text-align: center;
+            color: #ffffff;
+            font-family: 'Georgia', serif;
+            animation: roll-credits 30s linear forwards;
+            padding: 50px;
+        }
+        
+        @keyframes roll-credits {
+            0% {
+                bottom: -100%;
+            }
+            100% {
+                bottom: 120%;
+            }
+        }
+        
+        .credits-title {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            letter-spacing: 4px;
+        }
+        
+        .credits-section {
+            margin-bottom: 60px;
+        }
+        
+        .credits-section-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .credits-text {
+            font-size: 20px;
+            line-height: 1.8;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .credits-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .credits-role {
+            font-size: 18px;
+            color: #cccccc;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .credits-thanks {
+            font-size: 32px;
+            margin-top: 80px;
+            margin-bottom: 40px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            font-weight: bold;
+        }
+        /* Player HUD - Bottom Layout */
+        
+        #player-hud {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        #player-hud-right {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        /* Health Display */
+        
+        #health-container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 50, 50, 0.5);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+            min-width: 200px;
+        }
+        
+        #health-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        
+        #health-bar-container {
+            width: 100%;
+            height: 25px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        #health-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff3333 0%, #ff6666 100%);
+            width: 100%;
+            transition: width 0.3s ease, background 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 50, 50, 0.5);
+        }
+        
+        #health-bar.low {
+            background: linear-gradient(90deg, #ff0000 0%, #cc0000 100%);
+            animation: health-pulse 1s infinite;
+        }
+        
+        @keyframes health-pulse {
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 0, 0, 1);
+            }
+        }
+        
+        #health-text {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+        }
+        /* Ammo Display */
+        
+        #ammo-container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+            min-width: 200px;
+        }
+        
+        #ammo-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        
+        #ammo-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        #ammo-clip {
+            font-size: 32px;
+        }
+        
+        #ammo-separator {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 0 10px;
+        }
+        
+        #ammo-bag {
+            font-size: 20px;
+            color: rgba(255, 215, 0, 0.7);
+        }
+        /* Lives Tracker - Top Left, Simplified */
+        
+        #lives-tracker {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            pointer-events: none;
+            /* No background, no border, no padding */
+        }
+        
+        #lives-dots {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        
+        .life-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.5s ease;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .life-dot.alive {
+            background: rgba(50, 255, 50, 0.3);
+            border-color: rgba(50, 255, 50, 0.5);
+            color: rgba(50, 255, 50, 0.8);
+        }
+        
+        .life-dot.lost {
+            background: rgba(255, 0, 0, 0.8);
+            border-color: rgba(255, 0, 0, 1);
+            color: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8), 0 0 40px rgba(255, 0, 0, 0.4);
+            animation: life-lost-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes life-lost-pulse {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 0, 0, 0.8), 0 0 40px rgba(255, 0, 0, 0.4);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(255, 0, 0, 1), 0 0 60px rgba(255, 0, 0, 0.6);
+                transform: scale(1.05);
+            }
         }
     </style>
 </head>
+
 <body>
+    <!-- Player HUD - Bottom Left (Health) -->
+    <div id="player-hud">
+        <!-- Health Display -->
+        <div id="health-container">
+            <div id="health-label">Health</div>
+            <div id="health-bar-container">
+                <div id="health-bar"></div>
+            </div>
+            <div id="health-text">100 / 100</div>
+        </div>
+    </div>
+
+    <!-- Player HUD - Bottom Right (Ammo) -->
+    <div id="player-hud-right">
+        <!-- Ammo Display -->
+        <div id="ammo-container">
+            <div id="ammo-label">Ammunition</div>
+            <div id="ammo-display">
+                <span id="ammo-clip">30</span>
+                <span id="ammo-separator">/</span>
+                <span id="ammo-bag">120</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lives Tracker - Top Left (No background) -->
+    <div id="lives-tracker">
+        <div id="lives-dots"></div>
+    </div>
+
     <!-- Jumpscare Container -->
     <div id="jumpscare">
         <div id="jumpscare-text">BLOODHOUND</div>
@@ -133,7 +507,51 @@
     <!-- Distortion Overlay -->
     <div id="distortion-overlay"></div>
 
+    <!-- Objectives Tracker -->
+    <div id="objectives-tracker">
+        <div id="objectives-dots"></div>
+    </div>
+
+    <!-- Credits Container -->
+    <div id="credits-container">
+        <div id="credits-content">
+            <div class="credits-title">A DARK NANOS</div>
+
+            <div class="credits-section">
+                <div class="credits-section-title">Game Design & Development</div>
+                <div class="credits-name">olivato</div>
+                <div class="credits-role">Creator & Developer</div>
+            </div>
+
+            <div class="credits-section">
+                <div class="credits-section-title">Special Thanks</div>
+                <div class="credits-text">SyedMuhammed</div>
+                <div class="credits-text">To all the players who ventured into the dreamscape</div>
+                <div class="credits-text">And faced the horrors within</div>
+            </div>
+
+            <div class="credits-section">
+                <div class="credits-section-title">The Moon Remembers</div>
+                <div class="credits-text">You completed all objectives</div>
+                <div class="credits-text">The nightmare ends... for now</div>
+            </div>
+
+            <div class="credits-section">
+                <div class="credits-section-title">Built With</div>
+                <div class="credits-text">nanos world</div>
+                <div class="credits-text">Lua</div>
+            </div>
+
+            <div class="credits-thanks">THANK YOU FOR PLAYING</div>
+
+            <div class="credits-section">
+                <div class="credits-text">The dream may end, but it never truly leaves you...</div>
+                <div class="credits-text">Until we meet again in the next nightmare</div>
+            </div>
+        </div>
+    </div>
+
     <script src="index.js"></script>
 </body>
-</html>
 
+</html>

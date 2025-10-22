@@ -284,6 +284,9 @@ local function SpawnCrateWorldContent(dimension)
 
     -- Spawn massive ground plane for the whole world
     local ground = StaticMesh(Vector(0, 0, 1), Rotator(), "nanos-world::SM_Plane", CollisionType.Normal)
+    ground:SetMaterialTextureParameter("Texture", "package://adarknanos/Client/crate.jpg")
+    ground:SetMaterialScalarParameter("VTiling", 1024)
+    ground:SetMaterialScalarParameter("UTiling", 1024)
     ground:SetScale(Vector(WORLD_SIZE / 10, WORLD_SIZE / 10, 1))
     ground:SetMaterialColorParameter("Tint", Color(0.2, 0.2, 0.25))
     ground:SetDimension(dimension.id)
@@ -353,69 +356,6 @@ local function SpawnCrateWorldContent(dimension)
 
     -- Add final path to arena center
     table.insert(maze_waypoints, Vector(ARENA_CENTER.X, ARENA_CENTER.Y, 200))
-
-    -- Create a trigger that will clear crates along the path
-    local trigger_radius = 400 -- Radius of the cleaning area
-    local clean_trigger = Trigger(maze_waypoints[1], Rotator(), Vector(trigger_radius), TriggerType.Sphere, true)
-    clean_trigger:SetDimension(dimension.id)
-
-    clean_trigger:Subscribe("BeginOverlap", function(self, entity)
-        if entity:IsA(StaticMesh) and entity ~= ground then
-            entity:Destroy()
-        end
-    end)
-
-    -- Generate intermediate points between waypoints to ensure full coverage
-    local all_clear_points = {}
-    for i = 1, #maze_waypoints - 1 do
-        local start_pos = maze_waypoints[i]
-        local end_pos = maze_waypoints[i + 1]
-
-        -- Add start point
-        table.insert(all_clear_points, start_pos)
-
-        -- Calculate distance and number of steps needed
-        local distance = (end_pos - start_pos):Size()
-        local num_steps = math.ceil(distance / (trigger_radius * 1.5)) -- Overlap slightly
-
-        -- Add intermediate points
-        for step = 1, num_steps - 1 do
-            local t = step / num_steps
-            local intermediate_pos = Vector(
-                start_pos.X + (end_pos.X - start_pos.X) * t,
-                start_pos.Y + (end_pos.Y - start_pos.Y) * t,
-                start_pos.Z + (end_pos.Z - start_pos.Z) * t
-            )
-            table.insert(all_clear_points, intermediate_pos)
-        end
-    end
-    -- Add final waypoint
-    table.insert(all_clear_points, maze_waypoints[#maze_waypoints])
-
-    -- Move trigger through all clear points using SetLocation
-    local current_point = 1
-    local function ClearNextPoint()
-        if current_point <= #all_clear_points then
-            if clean_trigger:IsValid() then
-                clean_trigger:SetLocation(all_clear_points[current_point])
-            end
-            current_point = current_point + 1
-            Timer.SetTimeout(ClearNextPoint, 50) -- 50ms between positions
-        else
-            -- Path complete, destroy the trigger
-            Timer.SetTimeout(function()
-                if clean_trigger:IsValid() then
-                    clean_trigger:Destroy()
-                    Console.Log("Maze path complete! Cleared " .. #all_clear_points .. " positions")
-                end
-            end, 500)
-        end
-    end
-
-    -- Start clearing the path after a short delay
-    Timer.SetTimeout(ClearNextPoint, 1000)
-
-    Console.Log("Crate world created with " .. #maze_waypoints .. " waypoints in maze path")
 
     -- Create arena walls using crates
     local wall_crate_spacing = 100
@@ -535,12 +475,6 @@ local function SpawnCrateWorldContent(dimension)
         end
         return true
     end)
-
-    -- Broadcast start message
-    Timer.SetTimeout(function()
-        Chat.BroadcastMessage("Welcome to Crate World. Destroy 100 crates to escape.")
-        Chat.BroadcastMessage("Shoot the golden crate in the center to begin...")
-    end, 2000)
 
     Console.Log("Crate World dimension spawned")
 end

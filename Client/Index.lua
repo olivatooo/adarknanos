@@ -1,3 +1,5 @@
+Package.Require("Bloodhound/Index.lua")
+
 Input.Register("SpawnMenu", "Q")
 Sky.Spawn(true)
 
@@ -79,23 +81,194 @@ local my_ui = WebUI(
   WidgetVisibility.Visible -- Is Visible on Screen
 )
 
+-- Objectives tracking (synced from server)
+CurrentObjectivesCompleted = 0
+
+-- Event to receive objectives updates from server
+Events.SubscribeRemote("UpdateObjectivesCompleted", function(objectives_completed)
+  CurrentObjectivesCompleted = objectives_completed
+  Console.Log("Objectives completed updated to: " .. CurrentObjectivesCompleted)
+
+  -- Update the UI
+  my_ui:CallEvent("UpdateObjectivesUI", objectives_completed)
+end)
+
 -- Subscribe to jumpscare trigger from server
 Events.SubscribeRemote("TriggerJumpscare", function()
   Console.Log("Jumpscare received from server!")
   my_ui:CallEvent("TriggerJumpscare")
-  
+
   -- Camera shake effect
   local my_char = Client.GetLocalPlayer():GetControlledCharacter()
   if my_char and my_char:IsValid() then
-    my_char:SetCameraShakeIntensity(2.0)
-    
     -- Reset camera shake after jumpscare
-    Timer.SetTimeout(function()
-      if my_char:IsValid() then
-        my_char:SetCameraShakeIntensity(0)
-      end
-    end, 1000)
   end
 end)
 
 Package.Require("Dimensions.lua")
+
+-- ===== ENDGAME SEQUENCE HANDLERS =====
+
+-- Handler: Set Sky to clear
+Events.SubscribeRemote("EndGameSetSky", function()
+  Console.Log("EndGame: Setting sky to clear")
+  Sky.SetFog(0)
+  Sky.SetOverallIntensity(1.0)
+  Sky.Reconstruct()
+end)
+
+-- Handler: Set Weather to clear
+Events.SubscribeRemote("EndGameSetWeather", function()
+  Console.Log("EndGame: Setting weather to clear")
+  Sky.ChangeWeather(WeatherType.Clear, 2)
+end)
+
+-- Handler: Set Moon to specified angle
+Events.SubscribeRemote("EndGameSetMoon", function(angle)
+  Console.Log("EndGame: Setting moon angle to " .. tostring(angle))
+  Sky.SetMoonAngle(angle, 0)
+  Sky.SetMoonScale(30)
+  Sky.Reconstruct()
+end)
+
+-- Handler: Disable player input
+Events.SubscribeRemote("EndGameDisableInput", function()
+  Console.Log("EndGame: Disabling input")
+  Input.SetInputEnabled(false)
+  Input.SetMouseEnabled(false)
+end)
+
+-- Handler: Translate camera to the moon
+Events.SubscribeRemote("EndGameTranslateCamera", function()
+  Console.Log("EndGame: Translating camera to moon")
+
+  local player = Client.GetLocalPlayer()
+  if not player then return end
+
+  -- Create a camera transition effect by manipulating the spectator camera
+  -- The exact implementation depends on the nanos-world API capabilities
+  -- This is a placeholder that attempts to look upward toward the moon
+
+  local character = player:GetControlledCharacter()
+  if character and character:IsValid() then
+    -- Set camera to look up at the moon (pitch of -60 to look up at 60 degree moon)
+    character:SetCameraRotation(Rotator(-60, 0, 0))
+  end
+
+  -- Smooth camera transition over 3 seconds
+  Timer.SetTimeout(function()
+    if character and character:IsValid() then
+      character:SetCameraRotation(Rotator(-70, 0, 0))
+    end
+  end, 1000)
+
+  Timer.SetTimeout(function()
+    if character and character:IsValid() then
+      character:SetCameraRotation(Rotator(-80, 0, 0))
+    end
+  end, 2000)
+end)
+
+-- Handler: Roll credits using the WebUI
+Events.SubscribeRemote("EndGameRollCredits", function()
+  Console.Log("EndGame: Rolling credits")
+  my_ui:CallEvent("RollCredits")
+end)
+
+-- ===== PLAYER HUD SYSTEM =====
+-- Based on nanos world documentation: https://docs.nanos-world.com/docs/getting-started/tutorials-and-examples/basic-hud-html
+
+-- Event handler for lives update from server
+Events.SubscribeRemote("UpdatePlayerLives", function(lives_remaining)
+  Console.Log("Lives updated: " .. tostring(lives_remaining))
+  my_ui:CallEvent("UpdateLives", lives_remaining)
+end)
+
+-- Function to update the Health's UI
+function UpdateHealth(health, max_health)
+  my_ui:CallEvent("UpdateHealth", health, max_health)
+end
+
+-- Function to update the Ammo's UI
+function UpdateAmmo(ammo_clip, ammo_bag)
+  my_ui:CallEvent("UpdateAmmo", ammo_clip, ammo_bag)
+end
+
+-- Function to set all needed events on local character (to update the UI when it takes damage or dies)
+function UpdateLocalCharacter(character)
+  -- Verifies if character is not nil (eg. when GetControlledCharacter() doesn't return a character)
+  if (character == nil) then return end
+  
+  Console.Log("Setting up HUD for character")
+  
+  -- Updates the UI with the current character's health
+  UpdateHealth(character:GetHealth(), character:GetMaxHealth())
+  
+  -- Sets on character an event to update the health's UI after it takes damage
+  character:Subscribe("TakeDamage", function(charac, damage, bone, type, from_direction, instigator, causer)
+    UpdateHealth(math.max(charac:GetHealth() - damage, 0), charac:GetMaxHealth())
+  end)
+  
+  -- Sets on character an event to update the health's UI after it dies
+  character:Subscribe("Death", function(charac)
+    UpdateHealth(0, charac:GetMaxHealth())
+  end)
+  
+  -- Try to get if the character is holding any weapon
+  local current_picked_item = character:GetPicked()
+  
+  -- If so, update the UI
+  if (current_picked_item and current_picked_item:IsA(Weapon)) then
+    UpdateAmmo(current_picked_item:GetAmmoClip(), current_picked_item:GetAmmoBag())
+  else
+    UpdateAmmo(0, 0)
+  end
+  
+  -- Sets on character an event to update his grabbing weapon (to show ammo on UI)
+  character:Subscribe("PickUp", function(charac, object)
+    if (object:IsA(Weapon)) then
+      UpdateAmmo(object:GetAmmoClip(), object:GetAmmoBag())
+    end
+  end)
+  
+  -- Sets on character an event to remove the ammo ui when he drops it's weapon
+  character:Subscribe("Drop", function(charac, object)
+    if (object:IsA(Weapon)) then
+      UpdateAmmo(0, 0)
+    end
+  end)
+  
+  -- Sets on character an event to update the UI when he fires
+  character:Subscribe("Fire", function(charac, weapon)
+    UpdateAmmo(weapon:GetAmmoClip(), weapon:GetAmmoBag())
+  end)
+  
+  -- Sets on character an event to update the UI when he reloads the weapon
+  character:Subscribe("Reload", function(charac, weapon, ammo_to_reload)
+    UpdateAmmo(weapon:GetAmmoClip(), weapon:GetAmmoBag())
+  end)
+end
+
+-- When LocalPlayer spawns, sets an event on it to trigger when we possess a new character, 
+-- to store the local controlled character locally. This event is only called once, 
+-- see Package:Subscribe("Load") to load it when reloading a package
+Client.Subscribe("SpawnLocalPlayer", function(local_player)
+  Console.Log("Local player spawned - subscribing to Possess event")
+  local_player:Subscribe("Possess", function(player, character)
+    Console.Log("Player possessed character - updating HUD")
+    UpdateLocalCharacter(character)
+  end)
+end)
+
+-- When package loads, verify if LocalPlayer already exists (eg. when reloading the package), 
+-- then try to get and store its controlled character
+Package.Subscribe("Load", function()
+  Console.Log("Package loaded - checking for existing local player")
+  local local_player = Client.GetLocalPlayer()
+  if (local_player ~= nil) then
+    Console.Log("Local player found - updating controlled character")
+    UpdateLocalCharacter(local_player:GetControlledCharacter())
+  end
+end)
+
+Console.Log("Player HUD system initialized on client (event-based)")

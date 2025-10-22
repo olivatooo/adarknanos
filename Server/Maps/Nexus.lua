@@ -4,11 +4,47 @@ Package.Require("RoundMaze.lua")
 Package.Require("ConstructionHell.lua")
 Package.Require("Crate.lua")
 
+function SpawnDecorations()
+    local Offset = 3000
+    local ret = Assets.GetStaticMeshes("nanos-world")
+    local decorations = {}
+    for k, v in pairs(ret) do
+        table.insert(decorations, v.key)
+    end
+
+
+    function GetRandomDecoration()
+        return "nanos-world::" .. decorations[math.random(1, #decorations)]
+    end
+
+    function RandomFloat(min, max)
+        return min + math.random() * (max - min)
+    end
+
+    function SpawnDecoration(location)
+        local decoration = GetRandomDecoration()
+        local static_mesh = StaticMesh(location, Rotator(math.random(0, 360), math.random(0, 360), math.random(0, 360)),
+            decoration, CollisionType.NoCollision)
+        static_mesh:SetScale(Vector(RandomFloat(1, 5)))
+        static_mesh:SetGravityEnabled(false)
+        static_mesh:SetMaterialColorParameter("Tint", Color.Random())
+        static_mesh:TranslateTo(location + Vector(0, 0, 20000), 60, 1)
+        static_mesh:SetLifeSpan(60)
+        return static_mesh
+    end
+
+    Timer.SetInterval(function()
+        local angle = math.random() * math.pi * 2 -- Random angle around arena
+        local x = math.cos(angle) * (Offset * 2)  -- Doubled the radius
+        local y = math.sin(angle) * (Offset * 2)  -- Doubled the radius
+        local z = -3000
+        SpawnDecoration(Vector(x, y, z))
+    end, 2000)
+end
 
 function SpawnNexus(location, radius)
-        -- Spawn a Bloodhound in dimension 1
-    local bloodhound = Bloodhound.new(Vector(200, 200, 100), 1)
-
+    SpawnDecorations()
+    local bot = Character(Vector(0, 0, 100), Rotator(), "nanos-world::SK_AncientUgandan")
     local spawnedDoors = {}
     local doorCount = #Doors
     local doorIndex = 1
@@ -49,12 +85,14 @@ function SpawnNexus(location, radius)
     end
 
     -- Spawn ground plane
-    local sm = StaticMesh(Vector(0, 0, 1), Rotator(), "nanos-world::SM_Plane", CollisionType.Normal)
+    local sm = StaticMesh(Vector(0, 0, 4), Rotator(), "nanos-world::SM_Plane", CollisionType.Normal)
     sm:SetScale(Vector(1000, 1000, 1))
-    sm:SetPhysicalMaterial("nanos-world::PM_Grass")
-    sm:SetMaterialTextureParameter("Texture", "package://adarknanos/Client/concrete.jpg")
+    sm:SetPhysicalMaterial("nanos-world::PM_Concrete")
+    sm:SetMaterialTextureParameter("Texture", "package://adarknanos/Client/playground.jpg")
     sm:SetMaterialScalarParameter("Metallic", 0)
-    sm:SetMaterialScalarParameter("Specular ", 0)
+    sm:SetMaterialScalarParameter("Specular", 0)
+    sm:SetMaterialScalarParameter("UTiling", 128)
+    sm:SetMaterialScalarParameter("VTiling", 128)
     local my_light = Light(
         Vector(0, 0, 1000),
         Rotator(0, 90, 90), -- Relevant only for Rect and Spot light types
@@ -73,13 +111,20 @@ function SpawnNexus(location, radius)
     for i = 1, 25 do
         -- Create boundary triggers for world wrapping
         local box_trigger_north = Trigger(Vector(0, 45000, 0), Rotator(0, 0, 0), Vector(50000, 100, 1000),
-            TriggerType.Box, true, Color(0, 1, 0))
+            TriggerType.Box, false, Color(0, 1, 0))
+        box_trigger_north:SetOverlapOnlyClasses({ "Character", "Vehicle" })
+
         local box_trigger_south = Trigger(Vector(0, -45000, 0), Rotator(0, 0, 0), Vector(50000, 100, 1000),
-            TriggerType.Box, true, Color(0, 1, 0))
+            TriggerType.Box, false, Color(0, 1, 0))
+        box_trigger_south:SetOverlapOnlyClasses({ "Character", "Vehicle" })
+
         local box_trigger_east = Trigger(Vector(45000, 0, 0), Rotator(0, 0, 0), Vector(100, 50000, 1000), TriggerType
-            .Box, true, Color(0, 1, 0))
+            .Box, false, Color(0, 1, 0))
+        box_trigger_east:SetOverlapOnlyClasses({ "Character", "Vehicle" })
+
         local box_trigger_west = Trigger(Vector(-45000, 0, 0), Rotator(0, 0, 0), Vector(100, 50000, 1000),
-            TriggerType.Box, true, Color(0, 1, 0))
+            TriggerType.Box, false, Color(0, 1, 0))
+        box_trigger_west:SetOverlapOnlyClasses({ "Character", "Vehicle" })
 
         -- Handle north/south wrapping
         box_trigger_north:Subscribe("BeginOverlap", function(trigger, actor)
