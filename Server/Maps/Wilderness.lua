@@ -110,7 +110,8 @@ local function SpawnWildernessContent(dimension)
                 Chat.BroadcastMessage(random_msg)
             end
 
-            Bloodhound.new(Vector(math.random(-40000, 40000), math.random(-40000, 40000), 100), dimension.id)
+            Bloodhound.new(Vector(math.random(-40000, 40000), math.random(-40000, 40000), 100), dimension.id,
+                RewardSystem.GlobalObjectivesCompleted + 1)
         end)
     end
 

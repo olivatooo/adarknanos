@@ -43,6 +43,7 @@ function Bloodhound.new(location, dimension_id, difficulty)
     self.is_active = true
     self.spawned_props = {}
     self.timers = {}
+    self.difficulty = difficulty or 1
 
     -- Set dimension
     character:SetDimension(dimension_id)
@@ -54,15 +55,15 @@ function Bloodhound.new(location, dimension_id, difficulty)
     self:StartRandomScale()
     self:StartRandomFlicker()
     self:StartRandomSpeed()
-    -- self:StartRandomAnimation()
     character:PlayAnimation("nanos-world::A_Zombie_HyperChase_Loop", AnimationSlotType.FullBody, true, nil, nil, 2.0)
-    -- self:StartRandomPropSpawning()
-    self:StartRandomMovement()
+    -- if difficulty >= 2 then
+    --     self:StartRandomAnimation()
+    -- end
     self:StartPlayerTracking()
-    if difficulty >= 3 then
-        self:StartRandomTeleport()
+    self:StartRandomTeleport()
+    if difficulty >= 4 then
+        self:StartRandomPropSpawning()
     end
-
     -- Subscribe to death
     character:Subscribe("Death", function(self)
         Events.BroadcastRemoteDimension(self:GetDimension(), "BloodhoundSFX", "inv_wosh.ogg")
@@ -82,7 +83,7 @@ function Bloodhound:StartRandomScale()
         local scale_y = math.random(50, 200) / 100
         local scale_z = math.random(50, 1000) / 100 -- Can be very tall
         self.character:SetScale(Vector(scale_x, scale_y, scale_z))
-    end, math.random(10000, 30000))
+    end, math.random(20000 / self.difficulty, 30000))
 
     table.insert(self.timers, timer)
 end
@@ -116,8 +117,7 @@ end
 function Bloodhound:StartRandomSpeed()
     local timer = Timer.SetInterval(function()
         if not self.is_active or not self.character:IsValid() then return end
-        self.character:SetSpeedMultiplier(15)
-        self.character:SetSpeedMultiplier(10)
+        self.character:SetSpeedMultiplier(math.random(5, 20))
     end, math.random(1000, 3000))
 
     table.insert(self.timers, timer)
@@ -254,13 +254,14 @@ function Bloodhound:StartPlayerTracking()
 
             if player_char and player_char:IsValid() then
                 local player_pos = player_char:GetLocation()
+                self.character:MoveTo(player_pos)
 
                 -- Check for jumpscare distance (very close)
                 if nearest_distance < 300 then
                     Events.CallRemote("TriggerJumpscare", nearest_player)
                     Events.BroadcastRemoteDimension(self.dimension_id, "BloodhoundSFX",
                         "painful_" .. tostring(math.random(1, 105)) .. ".ogg")
-                    player_char:ApplyDamage(100)
+                    player_char:ApplyDamage(3 * self.difficulty)
                     if math.random() > 0.5 then
                         self:Destroy()
                     end

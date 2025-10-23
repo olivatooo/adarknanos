@@ -223,33 +223,36 @@ function SpawnCharacter(pos, player)
     end
   end)
 
-  character:Subscribe("Death", function(self)
-    Bloodhound.new(self:GetLocation(), self:GetDimension())
-    local player = self:GetPlayer()
+  character:Subscribe("Death",
+    function(self, last_damage_taken, last_bone_damaged, damage_type_reason, hit_from_direction, instigator, causer)
+      if instigator then
+        Bloodhound.new(self:GetLocation(), self:GetDimension(), RewardSystem.GlobalObjectivesCompleted + 2)
+      end
+      local player = self:GetPlayer()
 
-    -- Decrement lives on death
-    local has_lives = DecrementPlayerLives(player)
+      -- Decrement lives on death
+      local has_lives = DecrementPlayerLives(player)
 
-    if not has_lives then
-      -- Out of lives - kick the player
-      Timer.SetTimeout(function()
-        if player:IsValid() then
-          player:Kick("Out of Lives - Game Over")
-          Console.Log("Kicked player " .. player:GetName() .. " for running out of lives")
-        end
-      end, 3000) -- Give them 3 seconds to see the message
-      return
-    end
+      if not has_lives then
+        -- Out of lives - kick the player
+        Timer.SetTimeout(function()
+          if player:IsValid() then
+            player:Kick("Out of Lives - Game Over")
+            Console.Log("Kicked player " .. player:GetName() .. " for running out of lives")
+          end
+        end, 3000) -- Give them 3 seconds to see the message
+        return
+      end
 
-    player:SetDimension(1) -- Return to Nexus
-    self:SetDimension(1)
-    self:SetLocation(Vector(0, 0, 10000))
-    Events.CallRemote("PlayOST", player, "1.ogg")
-    Timer.SetTimeout(function(_char)
-      _char:Respawn()
-      RewardSystem.ApplyRewards(character)
-    end, 5000, self)
-  end)
+      player:SetDimension(1) -- Return to Nexus
+      self:SetDimension(1)
+      self:SetLocation(Vector(0, 0, 10000))
+      Events.CallRemote("PlayOST", player, "1.ogg")
+      Timer.SetTimeout(function(_char)
+        _char:Respawn()
+        RewardSystem.ApplyRewards(character)
+      end, 5000, self)
+    end)
 
   Timer.SetInterval(function(_char)
     if not _char:IsValid() then return false end
