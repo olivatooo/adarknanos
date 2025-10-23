@@ -113,7 +113,7 @@ function RewardSystem.IncrementGlobalObjectives()
     RewardSystem.SyncObjectivesToAllClients()
 
     -- Check if all objectives are completed (assuming 10 objectives total)
-    if RewardSystem.GlobalObjectivesCompleted >= 1 then
+    if RewardSystem.GlobalObjectivesCompleted >= 9 then
         Console.Log("ALL OBJECTIVES COMPLETED - Triggering EndGame sequence")
         -- Delay EndGame slightly to allow UI to update
         Timer.SetTimeout(function()

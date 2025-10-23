@@ -3,7 +3,7 @@
     # friendly name
     title =                 "adarknanos"
     # contributors
-    author =                ""
+    author =                "olivato"
     # version
     version =               "0.0.1"
 
@@ -19,7 +19,7 @@
     compatibility_version = "1.85"
     # packages requirements
     packages_requirements = [
-                            
+       ""
     ]
     # asset packs requirements
     assets_requirements = [

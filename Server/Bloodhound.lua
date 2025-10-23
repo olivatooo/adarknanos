@@ -56,14 +56,10 @@ function Bloodhound.new(location, dimension_id, difficulty)
     self:StartRandomFlicker()
     self:StartRandomSpeed()
     character:PlayAnimation("nanos-world::A_Zombie_HyperChase_Loop", AnimationSlotType.FullBody, true, nil, nil, 2.0)
-    -- if difficulty >= 2 then
-    --     self:StartRandomAnimation()
-    -- end
+    self:StartRandomAnimation()
     self:StartPlayerTracking()
     self:StartRandomTeleport()
-    if difficulty >= 4 then
-        self:StartRandomPropSpawning()
-    end
+    self:StartRandomPropSpawning()
     -- Subscribe to death
     character:Subscribe("Death", function(self)
         Events.BroadcastRemoteDimension(self:GetDimension(), "BloodhoundSFX", "inv_wosh.ogg")
